@@ -1,0 +1,6 @@
+[
+  "tests/test_features.py::test_binance_price_fetcher_returns_none_for_unknown_symbol",
+  "tests/test_features.py::test_deepscan_agent_import",
+  "tests/test_features.py::test_deployer_analyzer_no_key",
+  "tests/test_features.py::test_dexscreener_fetcher_invalid_address"
+]

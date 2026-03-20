@@ -1,0 +1,8 @@
+python-telegram-bot==20.3
+requests
+groq
+web3
+eth-utils
+aiohttp
+tenacity
+python-dotenv
