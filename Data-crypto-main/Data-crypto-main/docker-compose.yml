@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crypto_risk_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Database connection string
+      - DATABASE_URL=postgresql://postgres:secure_password@db:5432/crypto_risk
+      # Redis connection string
+      - REDIS_URL=redis://redis:6379/0
+      # Specific to the app env
+      - ENVIRONMENT=production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # Ensure logs don't consume all VPS storage
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  db:
+    # Use alpine version to save space
+    image: postgres:15-alpine
+    container_name: crypto_risk_db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secure_password
+      - POSTGRES_DB=crypto_risk
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Mount file init.sql để tự động tạo bảng khi chạy lần đầu
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    # Use alpine version to save space
+    image: redis:7-alpine
+    container_name: crypto_risk_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  # Persistent volumes for the database and redis
+  postgres_data:
+  redis_data:
